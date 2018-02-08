@@ -114,6 +114,7 @@ class Gcode {
 
   public String toString() {
     String out = "" + cmd;
+    
     if (x.flag) {
       out += " X" + x.v;
     }
@@ -139,10 +140,9 @@ class Gcode {
       out += " P" + (int)p.v;
     }
 
-    /*if (comment != "") {
-      out += comment;
+   if (comment != "" && out == "") {
+      out += " " +comment.trim();
     }
-    */
     out = out.trim();
 
     out += "\n";
@@ -157,16 +157,18 @@ class Param {
 
   public Param(float v) {
     this.v = v;
+    this.flag = false;
   }
 
   public Param() {
+    this.flag = false;
   }
 
   public void set(float v, boolean flag) {
     this.v = v;
     this.flag = flag;
   }
-   
+
   public float get() {
     return v;
   }
@@ -174,5 +176,4 @@ class Param {
   public boolean exist() {
     return flag;
   }
-
 }

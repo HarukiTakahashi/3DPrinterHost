@@ -10,7 +10,7 @@ Serial connectPrinter(String com, int baud) {
   InfoWin.printInfo("connecting...");
 
   try {
-    Thread.sleep(3000);
+    Thread.sleep(1000);
   }
   catch(Exception e) {
     InfoWin.printInfo("counld not connet to printer");
@@ -20,6 +20,10 @@ Serial connectPrinter(String com, int baud) {
   tmp.write(CONNECT_CODE);// home position
   InfoWin.printInfo(CONNECT_CODE);
   InfoWin.printInfo("printer is connected! [ Port : " + com + " , Baudrate : " + baud + " ]");
+
+  temperatureThread = new Temperature(3000);
+  temperatureThread.setRunning(true);
+  temperatureThread.start();
 
   return tmp;
 }
@@ -42,6 +46,7 @@ Serial connectSensor(String com, int baud) {
 
 // ingore first several messages
 int discardCount = 0;
+int comeonCount = 0;
 
 // =======================================
 // Called when data is available.
@@ -50,17 +55,22 @@ void serialEvent(Serial thisPort) {
 
   try {
     if (printer != null) {
-      byte[] buf = thisPort.readBytesUntil('\n');
-      if (buf != null) {
-        String str=new String(buf);
-        str = str.trim();
-        // debug
-        println(" - printer message > " + str);
+      if (thisPort == printer) {
+        byte[] buf = thisPort.readBytesUntil('\n');
+        if (buf != null) {
+          String str=new String(buf);
+          str = str.trim();
+          // debug
 
-
-        // If 3D printer returns "ok" after recieving a data
-        if (str.indexOf("ok") != -1) {
-          queue.setAccess(true);
+          // If 3D printer returns "ok" after recieving a data
+          if (str.indexOf("ok") != -1) {
+            if (str.indexOf("T:") != -1) {
+              // debug
+              MenuWin.setTemperature(str);
+            } else {
+              queue.setAccess(true);
+            }
+          }
         }
       }
     }
@@ -69,5 +79,4 @@ void serialEvent(Serial thisPort) {
   catch(RuntimeException e) {
     e.printStackTrace();
   }
-  
 }
